@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_URL}${endpoint}`, {
@@ -18,11 +19,15 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data.error || "Something went wrong.");
+    throw new Error(data.error || data.message || "Something went wrong.");
   }
 
   return data;
 }
+
+// ================================
+// AUTH API
+// ================================
 
 export const authApi = {
   signup(data) {
@@ -115,14 +120,18 @@ export const forumApi = {
   }
 };
 
+// ================================
+// MINECRAFT API
+// ================================
+
 export const minecraftApi = {
   getStatus() {
     const token = localStorage.getItem("oreboundToken");
 
     return request("/minecraft/status", {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
   },
 
@@ -132,8 +141,8 @@ export const minecraftApi = {
     return request("/minecraft/start", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
   },
 
@@ -143,8 +152,9 @@ export const minecraftApi = {
     return request("/minecraft/stop", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
-  },
+  }
 };
+
