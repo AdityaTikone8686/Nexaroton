@@ -355,7 +355,7 @@ export default function Dashboard() {
             </span>
 
             <h2>
-              Welcome back, {user.username}
+              Welcome, {user.username}
             </h2>
           </div>
 
@@ -610,7 +610,7 @@ export default function Dashboard() {
                 </h3>
 
                 <p>
-                  ${plan.price.toFixed(2)}
+                  ₹{plan.price.toFixed(2)}
                   /month · {plan.ram} RAM ·{" "}
                   {plan.slots}
                 </p>
