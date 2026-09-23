@@ -60,8 +60,38 @@ const userSchema = new mongoose.Schema(
     resetOtpAttempts: {
       type: Number,
       default: 0
+    },
+
+    // =========================
+    // Subscription
+    // =========================
+
+    subscription: {
+      status: {
+        type: String,
+        enum: ["inactive", "active", "expired"],
+        default: "inactive"
+      },
+
+      // Stores the actual selected plan ID
+      // Example: iron, diamond, netherite
+      plan: {
+        type: String,
+        enum: ["stone", "iron", "diamond", "netherite", null],
+        default: null
+      },
+      // Date when the subscription ends
+      expiresAt: {
+        type: Date,
+        default: null
+      }
     }
   },
+
+  // =========================
+  // Timestamps
+  // =========================
+
   {
     timestamps: true
   }

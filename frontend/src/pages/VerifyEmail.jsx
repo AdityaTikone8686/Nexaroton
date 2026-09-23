@@ -23,7 +23,9 @@ export default function VerifyEmail() {
     }
 
     if (!email) {
-      setError("Verification session expired. Please sign up again.");
+      setError(
+        "Verification session expired. Please sign up again."
+      );
       return;
     }
 
@@ -35,25 +37,41 @@ export default function VerifyEmail() {
         otp
       });
 
-      // Save login token
+      // Save JWT token
       localStorage.setItem(
         "oreboundToken",
         result.token
       );
 
-      // Remove temporary email
+      // Save authenticated user
+      localStorage.setItem(
+        "oreboundUser",
+        JSON.stringify(result.user)
+      );
+
+      // Remove temporary verification email
       sessionStorage.removeItem(
         "oreboundVerificationEmail"
       );
 
-      // Go to dashboard
-      navigate("/Dashboard");
+      // Check whether the user selected a plan
+      const selectedPlan =
+        sessionStorage.getItem("oreboundSelectedPlan");
+
+      if (selectedPlan) {
+        // User came from Plans → Signup → Verification
+        navigate("/payment");
+      } else {
+        // User signed up without selecting a plan
+        navigate("/plans");
+      }
 
     } catch (err) {
       console.error("Verification error:", err);
 
       setError(
-        err.message || "Unable to verify your email."
+        err.message ||
+        "Unable to verify your email."
       );
     } finally {
       setLoading(false);
@@ -63,10 +81,8 @@ export default function VerifyEmail() {
   return (
     <section>
       <div className="wrap">
-
         <div className="slot auth-wrap">
 
-          {/* Logo */}
           <div className="auth-brand">
             <img
               src="/logo.png"
@@ -76,7 +92,6 @@ export default function VerifyEmail() {
             <span>Nexaroton</span>
           </div>
 
-          {/* Heading */}
           <h2>Verify your email</h2>
 
           <p className="auth-subtitle">
@@ -93,11 +108,8 @@ export default function VerifyEmail() {
             {email || "your email address"}
           </p>
 
-          {/* Form */}
           <form onSubmit={handleSubmit}>
-
             <div className="field">
-
               <label htmlFor="otp">
                 Verification code
               </label>
@@ -117,17 +129,14 @@ export default function VerifyEmail() {
                 }
                 placeholder="123456"
               />
-
             </div>
 
-            {/* Error */}
             {error && (
               <div className="err">
                 {error}
               </div>
             )}
 
-            {/* Verify button */}
             <button
               className="btn btn-primary btn-block"
               type="submit"
@@ -137,12 +146,9 @@ export default function VerifyEmail() {
                 ? "Verifying..."
                 : "Verify email"}
             </button>
-
           </form>
 
-          {/* Back */}
           <p className="switch-line">
-
             Wrong email?{" "}
 
             <button
@@ -151,11 +157,9 @@ export default function VerifyEmail() {
             >
               Go back
             </button>
-
           </p>
 
         </div>
-
       </div>
     </section>
   );

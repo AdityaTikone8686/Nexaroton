@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useApp } from "../lib/store.jsx";
 
 export default function Header() {
-  const { currentUser, toggleTheme } = useApp();
+  const { toggleTheme } = useApp();
 
   const [open, setOpen] = useState(false);
   const [realUser, setRealUser] = useState(null);
@@ -43,6 +43,9 @@ export default function Header() {
     Boolean(localStorage.getItem("oreboundToken")) &&
     Boolean(user);
 
+  const hasActiveSubscription =
+    user?.subscription?.status === "active";
+
   return (
     <header>
       <div className="nav">
@@ -57,6 +60,7 @@ export default function Header() {
             alt="Nexaroton"
             className="brand-logo"
           />
+
           <span>Nexaroton</span>
         </button>
 
@@ -94,8 +98,8 @@ export default function Header() {
             Forum
           </NavLink>
 
-          {/* ONLY SHOW WHEN LOGGED IN */}
-          {isLoggedIn && (
+          {/* ONLY SHOW DASHBOARD WITH ACTIVE SUBSCRIPTION */}
+          {isLoggedIn && hasActiveSubscription && (
             <NavLink
               to="/dashboard"
               onClick={() => setOpen(false)}
@@ -120,7 +124,13 @@ export default function Header() {
           {isLoggedIn ? (
             <button
               className="btn btn-sm"
-              onClick={() => go("/dashboard")}
+              onClick={() =>
+                go(
+                  hasActiveSubscription
+                    ? "/dashboard"
+                    : "/plans"
+                )
+              }
             >
               {user.username}
             </button>

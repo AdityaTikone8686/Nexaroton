@@ -2,10 +2,19 @@ const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 async function request(endpoint, options = {}) {
+  const token = localStorage.getItem("oreboundToken");
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+
+      ...(token
+        ? {
+            Authorization: `Bearer ${token}`
+          }
+        : {}),
+
       ...(options.headers || {})
     }
   });
@@ -19,7 +28,16 @@ async function request(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data.error || data.message || "Something went wrong.");
+    const error = new Error(
+      data.error ||
+      data.message ||
+      "Something went wrong."
+    );
+
+    error.status = response.status;
+    error.data = data;
+
+    throw error;
   }
 
   return data;
@@ -94,25 +112,15 @@ export const forumApi = {
   },
 
   createThread(data) {
-    const token = localStorage.getItem("oreboundToken");
-
     return request("/forum/threads", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify(data)
     });
   },
 
   addReply(threadId, body) {
-    const token = localStorage.getItem("oreboundToken");
-
     return request(`/forum/threads/${threadId}/replies`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
       body: JSON.stringify({
         body
       })
@@ -126,34 +134,36 @@ export const forumApi = {
 
 export const minecraftApi = {
   getStatus() {
-    const token = localStorage.getItem("oreboundToken");
-
-    return request("/minecraft/status", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+    return request("/minecraft/status");
   },
 
   start() {
-    const token = localStorage.getItem("oreboundToken");
-
     return request("/minecraft/start", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      method: "POST"
     });
   },
 
   stop() {
-    const token = localStorage.getItem("oreboundToken");
-
     return request("/minecraft/stop", {
+      method: "POST"
+    });
+  }
+};
+
+export const paymentApi = {
+  createOrder(planId) {
+    return request("/payment/create-order", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      body: JSON.stringify({
+        planId
+      })
+    });
+  },
+
+  verifyPayment(data) {
+    return request("/payment/verify", {
+      method: "POST",
+      body: JSON.stringify(data)
     });
   }
 };

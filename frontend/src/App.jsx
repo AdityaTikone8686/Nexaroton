@@ -15,6 +15,7 @@ import VerifyEmail from "./pages/VerifyEmail.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import VerifyResetOTP from "./pages/VerifyResetOTP.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Payment from "./pages/Payment.jsx";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/payment" element={<Payment />} />
         </Routes>
       </main>
       <Footer />

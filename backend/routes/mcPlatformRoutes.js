@@ -1,10 +1,12 @@
 import express from "express";
 import { mcPlatformApi } from "../services/mcPlatformApi.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
+import { requireSubscription } from "../middleware/subscriptionMiddleware.js";
 
 const router = express.Router();
 
 
-router.get("/status", async (req, res) => {
+router.get("/status", requireAuth, requireSubscription, async (req, res) => {
   try {
     const data = await mcPlatformApi.getStatus();
 
@@ -25,7 +27,7 @@ router.get("/status", async (req, res) => {
 });
 
 
-router.post("/start", async (req, res) => {
+router.post("/start", requireAuth, requireSubscription, async (req, res) => {
   try {
     const data = await mcPlatformApi.start();
 
@@ -46,7 +48,7 @@ router.post("/start", async (req, res) => {
 });
 
 
-router.post("/stop", async (req, res) => {
+router.post("/stop", requireAuth, requireSubscription, async (req, res) => {
   try {
     const data = await mcPlatformApi.stop();
 
@@ -67,7 +69,7 @@ router.post("/stop", async (req, res) => {
 });
 
 
-router.post("/restart", async (req, res) => {
+router.post("/restart",  requireAuth, requireSubscription, async (req, res) => {
   try {
     const data = await mcPlatformApi.restart();
 

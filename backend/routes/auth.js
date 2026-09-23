@@ -217,6 +217,7 @@ router.post("/verify-email", async (req, res) => {
 
     const token = createToken(user);
 
+    
     res.json({
       message: "Email verified successfully.",
       token,
@@ -224,7 +225,13 @@ router.post("/verify-email", async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
-        email: user.email
+        email: user.email,
+
+        subscription: {
+          status: user.subscription?.status || "inactive",
+          plan: user.subscription?.plan || null,
+          expiresAt: user.subscription?.expiresAt || null
+        }
       }
     });
 
@@ -285,17 +292,24 @@ router.post("/login", async (req, res) => {
     }
 
     const token = createToken(user);
+  
+  res.json({
+    message: "Login successful.",
+    token,
 
-    res.json({
-      message: "Login successful.",
-      token,
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
 
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
+      subscription: {
+        status: user.subscription?.status || "inactive",
+        plan: user.subscription?.plan || null,
+        expiresAt: user.subscription?.expiresAt || null
       }
-    });
+    }
+  });
+
 
   } catch (error) {
     console.error("Login error:", error);

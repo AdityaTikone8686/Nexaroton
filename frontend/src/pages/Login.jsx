@@ -36,7 +36,20 @@ export default function Login() {
         JSON.stringify(result.user)
       );
 
-      navigate("/Dashboard");
+      // ==========================================
+      // Check subscription
+      // ==========================================
+
+      const subscriptionStatus =
+        result.user?.subscription?.status;
+
+      if (subscriptionStatus === "active") {
+        // User has an active subscription
+        navigate("/Dashboard");
+      } else {
+        // User needs to subscribe
+        navigate("/subscription");
+      }
 
     } catch (err) {
       console.error("Login error:", err);
@@ -170,3 +183,4 @@ export default function Login() {
     </section>
   );
 }
+

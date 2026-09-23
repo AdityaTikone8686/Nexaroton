@@ -19,7 +19,6 @@ function copyIP(toast) {
 
 export default function Dashboard() {
   const {
-    currentUser,
     logout,
     addWhitelist,
     removeWhitelist,
@@ -29,6 +28,12 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   const [mcname, setMcname] = useState("");
+
+  /*
+   * Real authenticated user
+   */
+  const [realUser, setRealUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   /*
    * Real Minecraft server status
@@ -44,9 +49,44 @@ export default function Dashboard() {
   const [stopping, setStopping] = useState(false);
 
   /*
-   * Real authentication user
+   * Authentication
    */
-  const [realUser, setRealUser] = useState(null);
+  useEffect(() => {
+    const token = localStorage.getItem("oreboundToken");
+    const savedUser = localStorage.getItem("oreboundUser");
+
+    if (!token || !savedUser) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    try {
+      const user = JSON.parse(savedUser);
+
+      if (!user) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      /*
+       * Dashboard requires an active subscription
+       */
+      if (user.subscription?.status !== "active") {
+        navigate("/plans", { replace: true });
+        return;
+      }
+
+      setRealUser(user);
+    } catch {
+      localStorage.removeItem("oreboundToken");
+      localStorage.removeItem("oreboundUser");
+
+      navigate("/login", { replace: true });
+      return;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [navigate]);
 
   /*
    * Start Minecraft server
@@ -63,8 +103,8 @@ export default function Dashboard() {
       toast("Minecraft server is starting.");
 
       /*
-       * Give Minecraft a moment to start before
-       * checking its status.
+       * Give Minecraft a moment to start
+       * before checking its status.
        */
       setTimeout(async () => {
         try {
@@ -129,32 +169,14 @@ export default function Dashboard() {
   };
 
   /*
-   * Authentication
-   */
-  useEffect(() => {
-    const token = localStorage.getItem("oreboundToken");
-    const savedUser = localStorage.getItem("oreboundUser");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    if (savedUser) {
-      try {
-        setRealUser(JSON.parse(savedUser));
-      } catch {
-        localStorage.removeItem("oreboundUser");
-      }
-    }
-  }, [navigate]);
-
-  /*
-   * Fetch real Minecraft server status
+   * Fetch Minecraft server status
    *
-   * The status is refreshed every 10 seconds.
+   * Only start fetching after authentication
+   * has been confirmed.
    */
   useEffect(() => {
+    if (!realUser) return;
+
     let cancelled = false;
 
     async function loadMinecraftStatus() {
@@ -167,6 +189,7 @@ export default function Dashboard() {
         if (!cancelled) {
           setMinecraftStatus(data);
         }
+
       } catch (err) {
         console.error(
           "Minecraft status error:",
@@ -179,6 +202,7 @@ export default function Dashboard() {
             "Unable to load Minecraft server status"
           );
         }
+
       } finally {
         if (!cancelled) {
           setStatusLoading(false);
@@ -197,44 +221,17 @@ export default function Dashboard() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, []);
+  }, [realUser]);
 
   /*
-   * Use real authenticated user if available.
-   * Keep the old store as fallback so existing
-   * dashboard features continue working.
+   * Wait while authentication is being checked
    */
-  const user = realUser || currentUser;
-
-  if (!user) {
+  if (authLoading) {
     return (
       <section>
         <div className="wrap">
           <div className="slot center-note">
-
-            <h3>
-              Sign in to see your dashboard
-            </h3>
-
-            <p>
-              Your server stats, whitelist, and plan
-              live here once you're signed in.
-            </p>
-
-            <button
-              className="btn btn-primary"
-              onClick={() => navigate("/login")}
-            >
-              Sign in
-            </button>{" "}
-
-            <button
-              className="btn btn-ghost"
-              onClick={() => navigate("/signup")}
-            >
-              Create account
-            </button>
-
+            <h3>Loading dashboard...</h3>
           </div>
         </div>
       </section>
@@ -242,10 +239,25 @@ export default function Dashboard() {
   }
 
   /*
-   * Existing plan system
+   * No authenticated user
    */
-  const plan = user.plan
-    ? planById(user.plan)
+  if (!realUser) {
+    return null;
+  }
+
+  const user = realUser;
+
+  /*
+   * Subscription
+   */
+  const subscriptionActive =
+    user?.subscription?.status === "active";
+
+  /*
+   * Existing plan information
+   */
+  const plan = user?.subscription?.plan
+    ? planById(user.subscription.plan)
     : null;
 
   /*
@@ -264,6 +276,12 @@ export default function Dashboard() {
   const serverPid =
     minecraftStatus?.live?.pid ?? null;
 
+  /*
+   * Whitelist
+   *
+   * Currently still comes from the existing
+   * frontend store.
+   */
   const wl = user.whitelist || [];
 
   /*
@@ -294,7 +312,34 @@ export default function Dashboard() {
      */
     logout();
 
-    navigate("/login");
+    navigate("/login", { replace: true });
+  }
+
+  /*
+   * Subscription protection
+   */
+  if (!subscriptionActive) {
+    return (
+      <section>
+        <div className="wrap">
+          <div className="slot center-note">
+            <h3>Active subscription required</h3>
+
+            <p>
+              Choose a plan to access your Minecraft
+              server dashboard.
+            </p>
+
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate("/plans")}
+            >
+              Choose a plan
+            </button>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -466,9 +511,7 @@ export default function Dashboard() {
               {/* Copy IP */}
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() =>
-                  copyIP(toast)
-                }
+                onClick={() => copyIP(toast)}
               >
                 Copy server IP
               </button>
@@ -547,7 +590,7 @@ export default function Dashboard() {
               Your plan
             </h3>
 
-            {plan ? (
+            {plan && subscriptionActive ? (
 
               <div>
 
@@ -571,6 +614,20 @@ export default function Dashboard() {
                   /month · {plan.ram} RAM ·{" "}
                   {plan.slots}
                 </p>
+
+                {user.subscription?.expiresAt && (
+                  <p
+                    style={{
+                      fontSize: ".82rem",
+                      opacity: 0.75
+                    }}
+                  >
+                    Expires:{" "}
+                    {new Date(
+                      user.subscription.expiresAt
+                    ).toLocaleDateString()}
+                  </p>
+                )}
 
                 <button
                   className="btn btn-sm"
@@ -612,6 +669,3 @@ export default function Dashboard() {
     </section>
   );
 }
-
-
-
