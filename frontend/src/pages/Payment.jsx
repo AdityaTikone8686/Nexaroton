@@ -51,8 +51,7 @@ export default function Payment() {
     document.body.appendChild(script);
 
     return () => {
-      // Don't remove the script here.
-      // It can be reused if the component mounts again.
+      // Keep Razorpay script loaded.
     };
   }, []);
 
@@ -77,7 +76,6 @@ export default function Payment() {
       }
 
       setPlan(parsedPlan);
-
     } catch {
       sessionStorage.removeItem(
         "oreboundSelectedPlan"
@@ -113,7 +111,7 @@ export default function Payment() {
 
     if (!razorpayKey) {
       setError(
-        "Razorpay Key ID is missing. Please check your frontend .env file."
+        "Razorpay Key ID is missing. Please check your frontend environment variables."
       );
 
       return;
@@ -161,7 +159,7 @@ export default function Payment() {
       }
 
       // ---------------------------------------
-      // Razorpay Checkout
+      // Razorpay Checkout options
       // ---------------------------------------
       const options = {
         key: razorpayKey,
@@ -191,63 +189,76 @@ export default function Payment() {
             setSuccess("");
             setLoading(true);
 
+            // ---------------------------------------
             // Verify payment on backend
+            // ---------------------------------------
             const verification =
-              const verification =
-                await paymentApi.verifyPayment({
-                    razorpay_order_id:
-                    response.razorpay_order_id,
+              await paymentApi.verifyPayment({
+                razorpay_order_id:
+                  response.razorpay_order_id,
 
-                    razorpay_payment_id:
-                    response.razorpay_payment_id,
+                razorpay_payment_id:
+                  response.razorpay_payment_id,
 
-                    razorpay_signature:
-                    response.razorpay_signature,
+                razorpay_signature:
+                  response.razorpay_signature,
 
-                    planId: plan.id
-                });
+                planId: plan.id
+              });
 
             console.log(
               "Payment verification response:",
               verification
             );
 
+            // ---------------------------------------
+            // Payment verified + subscription active
+            // ---------------------------------------
             if (verification?.success) {
-                setSuccess(
-                    "Payment successful! Your subscription is now active."
+              setSuccess(
+                "Payment successful! Your subscription is now active."
+              );
+
+              // Update saved user information
+              const savedUser =
+                localStorage.getItem(
+                  "oreboundUser"
                 );
 
-                const savedUser =
-                    localStorage.getItem("oreboundUser");
+              if (savedUser) {
+                try {
+                  const updatedUser =
+                    JSON.parse(savedUser);
 
-                if (savedUser) {
-                    try {
-                    const user = JSON.parse(savedUser);
+                  updatedUser.subscription =
+                    verification.subscription;
 
-                    user.subscription =
-                        verification.subscription;
-
-                    localStorage.setItem(
-                        "oreboundUser",
-                        JSON.stringify(user)
-                    );
-                    } catch (error) {
-                    console.error(
-                        "Failed to update saved user:",
-                        error
-                    );
-                    }
+                  localStorage.setItem(
+                    "oreboundUser",
+                    JSON.stringify(updatedUser)
+                  );
+                } catch (error) {
+                  console.error(
+                    "Failed to update saved user:",
+                    error
+                  );
                 }
+              }
 
-                setTimeout(() => {
-                    navigate("/dashboard");
-                }, 1000);
-                } else {
+              // Clear selected plan
+              sessionStorage.removeItem(
+                "oreboundSelectedPlan"
+              );
+
+              // Redirect to dashboard
+              setTimeout(() => {
+                navigate("/dashboard");
+              }, 1000);
+            } else {
               setError(
                 "Payment verification was not successful."
               );
             }
-
           } catch (err) {
             console.error(
               "Payment verification error:",
@@ -256,9 +267,8 @@ export default function Payment() {
 
             setError(
               err.message ||
-              "Payment verification failed. Please contact support if money was deducted."
+                "Payment verification failed. Please contact support if money was deducted."
             );
-
           } finally {
             setLoading(false);
           }
@@ -347,7 +357,6 @@ export default function Payment() {
       // Open Razorpay Checkout
       // ---------------------------------------
       razorpay.open();
-
     } catch (err) {
       console.error(
         "Payment error:",
@@ -356,7 +365,7 @@ export default function Payment() {
 
       setError(
         err.message ||
-        "Unable to create payment order."
+          "Unable to create payment order."
       );
 
       setLoading(false);
@@ -382,9 +391,7 @@ export default function Payment() {
   return (
     <main className="page">
       <div className="container">
-
         <div className="slot">
-
           <h1>
             Complete Your Payment
           </h1>
@@ -410,8 +417,10 @@ export default function Payment() {
                 marginTop: "16px",
                 padding: "12px",
                 borderRadius: "8px",
-                border: "1px solid #ff6b6b",
-                background: "rgba(255, 107, 107, 0.1)",
+                border:
+                  "1px solid #ff6b6b",
+                background:
+                  "rgba(255, 107, 107, 0.1)",
                 lineHeight: "1.5"
               }}
             >
@@ -426,8 +435,10 @@ export default function Payment() {
                 marginTop: "16px",
                 padding: "12px",
                 borderRadius: "8px",
-                border: "1px solid #4fd8a8",
-                background: "rgba(79, 216, 168, 0.1)",
+                border:
+                  "1px solid #4fd8a8",
+                background:
+                  "rgba(79, 216, 168, 0.1)",
                 lineHeight: "1.5"
               }}
             >
@@ -469,9 +480,7 @@ export default function Payment() {
           >
             Change Plan
           </button>
-
         </div>
-
       </div>
     </main>
   );
