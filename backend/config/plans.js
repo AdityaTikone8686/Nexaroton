@@ -2,25 +2,25 @@ export const PLANS = {
   stone: {
     id: "stone",
     name: "Stone",
-    price: 99
+    price: 40
   },
 
   iron: {
     id: "iron",
     name: "Iron",
-    price: 199
+    price: 80
   },
 
   diamond: {
     id: "diamond",
     name: "Diamond",
-    price: 349
+    price: 199
   },
 
   netherite: {
     id: "netherite",
     name: "Netherite",
-    price: 599
+    price: 299
   }
 };
 
