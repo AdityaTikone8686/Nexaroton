@@ -7,10 +7,10 @@ export const CATEGORIES = [
 ];
 
 export const PLANS = [
-  { id: "stone", name: "Stone", price: 99, color: "#8a8a86", ram: "2 GB", slots: "10 players", backups: "Daily", support: "Community" },
-  { id: "iron", name: "Iron", price: 199, color: "#d8d3c4", ram: "4 GB", slots: "25 players", backups: "Every 12h", support: "Email" },
-  { id: "diamond", name: "Diamond", price: 349, color: "#4fd8e0", ram: "8 GB", slots: "60 players", backups: "Every 6h", support: "Priority chat", featured: true },
-  { id: "netherite", name: "Netherite", price: 599, color: "#4a3b3b", ram: "16 GB", slots: "Unlimited*", backups: "Hourly", support: "Dedicated" }
+  { id: "stone", name: "Stone", price: 40, color: "#8a8a86", ram: "2 GB", slots: "10 players", backups: "Daily", support: "Community" },
+  { id: "iron", name: "Iron", price: 80, color: "#d8d3c4", ram: "4 GB", slots: "25 players", backups: "Every 12h", support: "Email" },
+  { id: "diamond", name: "Diamond", price: 199, color: "#4fd8e0", ram: "8 GB", slots: "60 players", backups: "Every 6h", support: "Priority chat", featured: true },
+  { id: "netherite", name: "Netherite", price: 299, color: "#4a3b3b", ram: "16 GB", slots: "Unlimited*", backups: "Hourly", support: "Dedicated" }
 ];
 
 export function planById(id) {
