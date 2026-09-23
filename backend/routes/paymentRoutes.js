@@ -4,6 +4,7 @@ import crypto from "crypto";
 import razorpay from "../services/razorpayService.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
 import { getPlan } from "../config/plans.js";
+import User from "../models/User.js";
 
 const router = express.Router();
 
@@ -70,16 +71,26 @@ router.post("/verify", requireAuth, async (req, res) => {
     const {
       razorpay_order_id,
       razorpay_payment_id,
-      razorpay_signature
+      razorpay_signature,
+      planId
     } = req.body;
 
     if (
       !razorpay_order_id ||
       !razorpay_payment_id ||
-      !razorpay_signature
+      !razorpay_signature ||
+      !planId
     ) {
       return res.status(400).json({
         error: "Payment verification data is incomplete."
+      });
+    }
+
+    const plan = getPlan(planId);
+
+    if (!plan) {
+      return res.status(400).json({
+        error: "Invalid plan."
       });
     }
 
@@ -107,13 +118,43 @@ router.post("/verify", requireAuth, async (req, res) => {
       });
     }
 
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found."
+      });
+    }
+
+    const expiresAt = new Date();
+
+    expiresAt.setDate(
+      expiresAt.getDate() + 30
+    );
+
+    user.subscription = {
+      status: "active",
+      plan: plan.id,
+      expiresAt
+    };
+
+    await user.save();
+
     return res.json({
       success: true,
-      message: "Payment verified successfully."
+      message: "Payment verified and subscription activated.",
+      subscription: {
+        status: user.subscription.status,
+        plan: user.subscription.plan,
+        expiresAt: user.subscription.expiresAt
+      }
     });
 
   } catch (error) {
-    console.error("Payment verification error:", error);
+    console.error(
+      "Payment verification error:",
+      error
+    );
 
     return res.status(500).json({
       error: "Unable to verify payment."

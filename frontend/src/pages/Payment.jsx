@@ -193,16 +193,19 @@ export default function Payment() {
 
             // Verify payment on backend
             const verification =
-              await paymentApi.verifyPayment({
-                razorpay_order_id:
-                  response.razorpay_order_id,
+              const verification =
+                await paymentApi.verifyPayment({
+                    razorpay_order_id:
+                    response.razorpay_order_id,
 
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
+                    razorpay_payment_id:
+                    response.razorpay_payment_id,
 
-                razorpay_signature:
-                  response.razorpay_signature
-              });
+                    razorpay_signature:
+                    response.razorpay_signature,
+
+                    planId: plan.id
+                });
 
             console.log(
               "Payment verification response:",
@@ -210,23 +213,36 @@ export default function Payment() {
             );
 
             if (verification?.success) {
-              setSuccess(
-                "Payment verified successfully!"
-              );
+                setSuccess(
+                    "Payment successful! Your subscription is now active."
+                );
 
-              /*
-                IMPORTANT:
+                const savedUser =
+                    localStorage.getItem("oreboundUser");
 
-                We are NOT navigating to the dashboard yet.
+                if (savedUser) {
+                    try {
+                    const user = JSON.parse(savedUser);
 
-                The backend still needs to activate
-                the user's subscription.
-              */
+                    user.subscription =
+                        verification.subscription;
 
-              console.log(
-                "Payment verified successfully."
-              );
-            } else {
+                    localStorage.setItem(
+                        "oreboundUser",
+                        JSON.stringify(user)
+                    );
+                    } catch (error) {
+                    console.error(
+                        "Failed to update saved user:",
+                        error
+                    );
+                    }
+                }
+
+                setTimeout(() => {
+                    navigate("/dashboard");
+                }, 1000);
+                } else {
               setError(
                 "Payment verification was not successful."
               );
