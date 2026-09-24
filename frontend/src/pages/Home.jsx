@@ -105,7 +105,7 @@ export default function Home() {
       <section>
         <div className="wrap">
           <div className="section-head">
-            <span className="kicker">WHY NEXAROTON</span>
+            <span className="kicker">WHY NEXAROTON ?</span>
             <h2>Built for worlds people actually live in</h2>
             <p>Every plan runs on dedicated hardware with the same protections — the tiers below just scale the room you get.</p>
           </div>
